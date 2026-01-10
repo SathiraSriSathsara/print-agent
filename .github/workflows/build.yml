@@ -1,0 +1,35 @@
+name: Build POS Print Agent
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-exe:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js 16
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install pkg
+        run: npm install -g pkg
+
+      - name: Build exe
+        run: pkg index.js --targets node16-win-x64 --output pos-print-agent.exe
+
+      - name: Upload exe
+        uses: actions/upload-artifact@v3
+        with:
+          name: pos-print-agent-exe
+          path: pos-print-agent.exe

@@ -1,0 +1,12 @@
+{
+  "template": "receipt",
+  "invoiceNo": "INV-1001",
+  "items": [
+    { "name": "Milk", "qty": 2, "price": 120 },
+    { "name": "Bread", "qty": 1, "price": 80 }
+  ],
+  "total": 320,
+  "pirnterName": "POS-80C",
+  "savePDF": true,
+  "pirnt": false
+}

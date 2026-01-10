@@ -1,0 +1,15 @@
+{
+  "receipt": {
+    "file": "receipt.hbs",
+    "width": "80mm",
+    "height": "auto"
+  },
+  "invoiceA4": {
+    "file": "invoice-a4.hbs",
+    "format": "A4"
+  },
+  "kitchen": {
+    "file": "kitchen-slip.hbs",
+    "width": "72mm"
+  }
+}
