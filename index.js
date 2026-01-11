@@ -5,57 +5,58 @@ const Handlebars = require("handlebars");
 const puppeteer = require("puppeteer-core");
 const { print, getPrinters } = require("pdf-to-printer");
 
-// Logging helper
+// Determine base folder for exe or Node.js
+const BASE_DIR = process.pkg ? path.dirname(process.execPath) : __dirname;
+
+// Folders for queue and output
+const QUEUE = path.join(BASE_DIR, "queue");
+const OUTPUT = path.join(BASE_DIR, "output");
+const TEMPLATE_DIR = path.join(BASE_DIR, "templates");
+
+// Log file path (real disk, not inside exe)
+const LOG_FILE = path.join(BASE_DIR, "agent.log");
+
+// Helper function to log to console + file
 function log(...args) {
   try {
-    const logLine = `[${new Date().toISOString()}] ${args.join(" ")}`;
-    console.log(logLine);
-    fs.appendFileSync("agent.log", logLine + "\n");
+    const line = `[${new Date().toISOString()}] ${args.join(" ")}`;
+    console.log(line);
+    fs.appendFileSync(LOG_FILE, line + "\n");
   } catch (e) {
     console.error("Failed to write log:", e);
   }
 }
 
-// Get resource path compatible with pkg
-function getResourcePath(relativePath) {
-  return process.pkg
-    ? path.join(path.dirname(process.execPath), relativePath)
-    : path.join(__dirname, relativePath);
-}
-
-// Directories
-const QUEUE = getResourcePath("queue");
-const OUTPUT = getResourcePath("output");
-
-// Ensure folders exist
-[QUEUE, OUTPUT].forEach((dir) => {
+// Ensure required folders exist
+[QUEUE, OUTPUT, TEMPLATE_DIR].forEach((dir) => {
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
     log("Created folder:", dir);
   }
 });
 
-// Load templates and printers
+// Load template config
 let TEMPLATE_CONFIG = {};
-let PRINTERS = {};
 try {
-  TEMPLATE_CONFIG = JSON.parse(
-    fs.readFileSync(getResourcePath("template-config.json"), "utf8")
-  );
+  TEMPLATE_CONFIG = JSON.parse(fs.readFileSync(path.join(BASE_DIR, "template-config.json"), "utf8"));
   log("Loaded template-config.json");
 } catch (e) {
   log("Failed to load template-config.json:", e.message);
 }
 
+// Load printers.json if exists
+let PRINTERS = {};
 try {
-  PRINTERS = fs.existsSync(getResourcePath("printers.json"))
-    ? JSON.parse(fs.readFileSync(getResourcePath("printers.json"), "utf8"))
-    : {};
-  log("Loaded printers.json");
+  const printersPath = path.join(BASE_DIR, "printers.json");
+  if (fs.existsSync(printersPath)) {
+    PRINTERS = JSON.parse(fs.readFileSync(printersPath, "utf8"));
+    log("Loaded printers.json");
+  }
 } catch (e) {
   log("Failed to load printers.json:", e.message);
 }
 
+// Main job processor
 async function processJob(filePath) {
   log("New job detected:", filePath);
 
@@ -64,6 +65,7 @@ async function processJob(filePath) {
     json = JSON.parse(fs.readFileSync(filePath, "utf8"));
   } catch (e) {
     log("Failed to parse JSON:", e.message);
+    fs.unlinkSync(filePath);
     return;
   }
 
@@ -76,13 +78,14 @@ async function processJob(filePath) {
   }
 
   const templateInfo = TEMPLATE_CONFIG[templateKey];
-  const templatePath = path.join(getResourcePath("templates"), templateInfo.file);
+  const templatePath = path.join(TEMPLATE_DIR, templateInfo.file);
 
   let templateHtml;
   try {
     templateHtml = fs.readFileSync(templatePath, "utf8");
   } catch (e) {
     log("Failed to read template:", templatePath, e.message);
+    fs.unlinkSync(filePath);
     return;
   }
 
@@ -96,19 +99,20 @@ async function processJob(filePath) {
   const safeName = invoiceNo.replace(/[^a-z0-9-_]/gi, "_");
   const finalPdfPath = path.join(OUTPUT, `${safeName}-${currentDate}-${currentTime}.pdf`);
 
-  const shouldPrint = json.print !== false;
+  const shouldPrint = json.print !== false; // default = true
   const shouldSavePDF = json.savePDF === true;
 
-  // Puppeteer launch
+  // Launch Puppeteer
   let browser;
   try {
     browser = await puppeteer.launch({
+      headless: "new",
+      // For pkg exe, user may need to provide Chrome path in JSON
       executablePath:
         json.chromePath ||
         "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe",
-      headless: "new",
     });
-    log("Launched Puppeteer successfully");
+    log("Puppeteer launched successfully");
   } catch (e) {
     log("Failed to launch Puppeteer:", e.message);
     fs.unlinkSync(filePath);
@@ -119,6 +123,7 @@ async function processJob(filePath) {
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
 
+    // PDF generation
     const tempPdfPath = path.join(OUTPUT, `.__temp_${Date.now()}.pdf`);
     const pdfOptions = { path: tempPdfPath };
 
@@ -130,11 +135,10 @@ async function processJob(filePath) {
     log("PDF generated successfully:", tempPdfPath);
 
     let printed = false;
+
     if (shouldPrint) {
       try {
-        let printerName = json.printerName
-          ? PRINTERS[json.printerName] || json.printerName
-          : undefined;
+        let printerName = json.printerName ? PRINTERS[json.printerName] || json.printerName : undefined;
 
         if (printerName) {
           const printers = await getPrinters();
@@ -162,13 +166,14 @@ async function processJob(filePath) {
     }
   } catch (e) {
     log("Job failed:", e.message);
+    if (browser) await browser.close();
   }
 
   fs.unlinkSync(filePath);
   log("Job cleaned:", filePath);
 }
 
-// Watch queue folder
+// Watch the queue folder
 chokidar.watch(QUEUE).on("add", processJob);
 
-log("Printer Agent Running...");
+log("🟢 Printer Agent Running...");
