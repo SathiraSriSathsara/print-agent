@@ -27,4 +27,6 @@
 /.yalc
 /.pnp
 /.pnp.js
-pos-print-agent.exe
+pos-print-agent.
+*.log
+*.exe
