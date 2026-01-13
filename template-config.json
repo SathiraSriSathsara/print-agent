@@ -9,6 +9,11 @@
     "width": "72mm",
     "height": "auto"
   },
+  "kot": {
+    "file": "kot.hbs",
+    "width": "72mm",
+    "height": "auto"
+  },
   "invoiceA4": {
     "file": "invoice-a4.hbs",
     "format": "A4"

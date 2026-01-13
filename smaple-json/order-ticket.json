@@ -1,0 +1,36 @@
+{
+  "template": "kot",
+  "orderTicketType": "Kitchen",
+  "kot": "OT-1023",
+  "date": "2026-01-14 12:45",
+  "waiter": "John Doe",
+  "pax": 4,
+  "type": "Dine-In",
+  "table": "12",
+  "items": [
+    {
+      "no": 1,
+      "name": "Grilled Chicken",
+      "uom": "Plate",
+      "qty": 2
+    },
+    {
+      "no": 2,
+      "name": "Caesar Salad",
+      "uom": "Bowl",
+      "qty": 1
+    },
+    {
+      "no": 3,
+      "name": "Lemonade",
+      "uom": "Glass",
+      "qty": 4
+    }
+  ],
+  "total": 6,
+  "user": "Admin",
+  "shopName": "The Gourmet Kitchen",
+  "printerName": "POS-80C",
+  "savePDF": true,
+  "print": true
+}
