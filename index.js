@@ -4,6 +4,7 @@ const chokidar = require("chokidar");
 const Handlebars = require("handlebars");
 const puppeteer = require("puppeteer-core");
 const { print, getPrinters } = require("pdf-to-printer");
+const bwipjs = require("bwip-js");
 
 // Determine base folder for exe or Node.js
 const BASE_DIR = process.pkg ? path.dirname(process.execPath) : __dirname;
@@ -38,7 +39,9 @@ function log(...args) {
 // Load template config
 let TEMPLATE_CONFIG = {};
 try {
-  TEMPLATE_CONFIG = JSON.parse(fs.readFileSync(path.join(BASE_DIR, "template-config.json"), "utf8"));
+  TEMPLATE_CONFIG = JSON.parse(
+    fs.readFileSync(path.join(BASE_DIR, "template-config.json"), "utf8")
+  );
   log("Loaded template-config.json");
 } catch (e) {
   log("Failed to load template-config.json:", e.message);
@@ -80,6 +83,21 @@ async function processJob(filePath) {
   const templateInfo = TEMPLATE_CONFIG[templateKey];
   const templatePath = path.join(TEMPLATE_DIR, templateInfo.file);
 
+  try {
+    const png = await bwipjs.toBuffer({
+      bcid: "code128", // Barcode type
+      text: json.invoiceNo, // Value
+      scale: 3,
+      height: 10,
+      includetext: true,
+      textxalign: "center",
+    });
+
+    json.barcodeImage = `data:image/png;base64,${png.toString("base64")}`;
+  } catch (e) {
+    log("Barcode generation failed:", e.message);
+  }
+
   let templateHtml;
   try {
     templateHtml = fs.readFileSync(templatePath, "utf8");
@@ -90,6 +108,9 @@ async function processJob(filePath) {
   }
 
   const compiled = Handlebars.compile(templateHtml);
+  json.year = new Date().getFullYear();
+  json.companyNumber = json.companyNumber || "076 829 0274";
+  json.barcode = json.invoiceNo;
   const html = compiled(json);
 
   const now = new Date();
@@ -97,7 +118,10 @@ async function processJob(filePath) {
   const currentTime = now.toTimeString().split(" ")[0].replace(/:/g, "-");
   const invoiceNo = json.invoiceNo || `unknown-${Date.now()}`;
   const safeName = invoiceNo.replace(/[^a-z0-9-_]/gi, "_");
-  const finalPdfPath = path.join(OUTPUT, `${safeName}-${currentDate}-${currentTime}.pdf`);
+  const finalPdfPath = path.join(
+    OUTPUT,
+    `${safeName}-${currentDate}-${currentTime}.pdf`
+  );
 
   const shouldPrint = json.print !== false; // default = true
   const shouldSavePDF = json.savePDF === true;
@@ -138,7 +162,9 @@ async function processJob(filePath) {
 
     if (shouldPrint) {
       try {
-        let printerName = json.printerName ? PRINTERS[json.printerName] || json.printerName : undefined;
+        let printerName = json.printerName
+          ? PRINTERS[json.printerName] || json.printerName
+          : undefined;
 
         if (printerName) {
           const printers = await getPrinters();
@@ -146,7 +172,10 @@ async function processJob(filePath) {
           if (!exists) throw new Error("Printer not found");
         }
 
-        await print(tempPdfPath, printerName ? { printer: printerName } : undefined);
+        await print(
+          tempPdfPath,
+          printerName ? { printer: printerName } : undefined
+        );
         printed = true;
         log("Printed successfully on:", printerName || "default printer");
       } catch (err) {

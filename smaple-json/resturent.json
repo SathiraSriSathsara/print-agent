@@ -1,5 +1,5 @@
 {
-  "template": "receipt",
+  "template": "resturent",
   "invoiceNo": "INV-1001",
   "date": "2026-01-13",
   "user": "Admin",
@@ -30,7 +30,7 @@
   "change": 0,
 
   "year": "2026",
-  "companyNumber": "PV00213456",
+  "companyNumber": "076 829 0274",
 
   "ADDRESS_LINE_01": "No 45, Galle Road",
   "ADDRESS_LINE_02": "Colombo 03",

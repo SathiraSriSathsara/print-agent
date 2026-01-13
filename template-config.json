@@ -1,7 +1,12 @@
 {
   "receipt": {
     "file": "receipt.hbs",
-    "width": "80mm",
+    "width": "72mm",
+    "height": "auto"
+  },
+  "resturent": {
+    "file": "resturent.hbs",
+    "width": "72mm",
     "height": "auto"
   },
   "invoiceA4": {

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cash Receipt Template</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'arial', monospace;
+        }
+
+        .receipt-container {
+            width: 100%;
+            background-color: white;
+            padding: 10px 15px;
+            position: relative;
+        }
+
+
+        .shop-name {
+            text-align: center;
+            font-weight: bold;
+            font-size: 24px;
+            letter-spacing: 1px;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+        }
+
+        .shop-details {
+            text-align: center;
+            font-size: 14px;
+            margin-bottom: 10px;
+            line-height: 1.4;
+            border-bottom: 1px dashed #333;
+            padding-bottom: 8px;
+        }
+
+        .receipt-title {
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #333;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 10px;
+        }
+
+        .items-table th {
+            text-align: left;
+            font-weight: bold;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #333;
+            font-size: 16px;
+        }
+
+        .items-table td {
+            padding: 6px 0;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .items-table tr:last-child td {
+            border-bottom: 2px solid #333;
+        }
+
+        .description-col {
+            text-align: left;
+            width: 70%;
+        }
+
+        .price-col {
+            text-align: right;
+            width: 30%;
+        }
+
+        .total-row {
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        .payment-details {
+            width: 100%;
+            margin: 5px 0;
+            border-collapse: collapse;
+        }
+
+        .payment-details td {
+            padding: 8px 0;
+            border-bottom: 1px dashed #ccc;
+        }
+
+        .payment-details tr:last-child td {
+            border-bottom: none;
+        }
+
+        .payment-label {
+            text-align: left;
+            width: 60%;
+        }
+
+        .payment-value {
+            text-align: right;
+            width: 40%;
+        }
+
+        .thank-you {
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed #333;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .invoice-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            border-bottom: 1px dashed #333;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="receipt-container">
+        <div class="shop-name">SHOP NAME</div>
+
+        <div class="shop-details">
+            Address: {{ADDRESS_LINE_01}},{{ADDRESS_LINE_02}}<br>
+            Telp. {{PHONE_NUMBER_01}}, {{PHONE_NUMBER_02}}
+        </div>
+
+        <div class="receipt-title">INVOICE</div>
+        <div class="invoice-details">
+            <div style="text-align: left;">
+                <small>
+                    <b>No:</b> {{invoiceNo}}<br>
+                    <b>Table:</b>{{tableNo}}<br>
+                    <b>Date:</b> {{date}}<br>
+                </small>
+            </div>
+            <div style="text-align: right;">
+                <small>
+                    <b>Server:</b> {{server}}<br>
+                    <b>Cashier:</b> {{cashier}}<br>
+                    <b>Customer:</b> {{customer}}
+                </small>
+            </div>
+        </div>
+
+
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th class="description-col">Description</th>
+                    <th class="price-col">Price</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                {{#each items}}
+                <tr>
+                    <td class="description-col">{{qty}}x {{name}}</td>
+                    <td class="price-col">{{total}}</td>
+                </tr>
+                {{/each}}
+                <tr class="total-row">
+                    <td class="description-col">Total</td>
+                    <td class="price-col">{{total}}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table class="payment-details">
+            <tr>
+                <td class="payment-label">Recived ({{paymentMethod}})</td>
+                <td class="payment-value">{{payment}}</td>
+            </tr>
+            <tr>
+                <td class="payment-label">Change</td>
+                <td class="payment-value">{{change}}</td>
+            </tr>
+        </table>
+
+        <div class="thank-you">THANK YOU!</div>
+        <center>
+            <br>
+            <p><small style="margin-bottom:20px;">(C) {{year}} <strong>PositiQ</strong>, {{companyNumber}}</small></p>
+            <center>***</center>
+        </center>
+    </div>
+</body>
+
+</html>
